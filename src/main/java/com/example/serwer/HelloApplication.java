@@ -6,7 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
-
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 
 /**
@@ -31,7 +32,7 @@ public class HelloApplication extends Application {
      * Funkcja main odpowiadająca za uruchomienie aplikacji serwera
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         launch();
             }
     }

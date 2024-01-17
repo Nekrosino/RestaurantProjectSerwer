@@ -1,22 +1,15 @@
 package com.example.serwer;
 
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
-import javax.xml.transform.Result;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,7 +23,10 @@ import java.util.ResourceBundle;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class HelloController implements Initializable {
 
@@ -49,16 +45,17 @@ public class HelloController implements Initializable {
 
     private PreparedStatement preparedStatement;
 
-    private String baseUrl = "jdbc:mysql://localhost:3306/biuropodrozy";
-    private String baseLogin = "root";
+    //private String baseUrl = "jdbc:mysql://localhost:3306/biuropodrozy";
+    //private String baseLogin = "root";
 
-    private String basePassword = "root";
+    //private String basePassword = "root";
 
-    //private String baseUrl = "jdbc:oracle:thin:@//localhost:1522/biuropodrozy";
+    private String baseUrl = "jdbc:oracle:thin:@//localhost:1522/xepdb1";
 
-    //private String baseLogin = "hr";
+    private String baseLogin = "admin1";
 
-    //private String basePassword = "hr";
+    private String basePassword = "admin1";
+
 
     private String returnedUsername;
     private String returnedPassword;
@@ -69,12 +66,18 @@ public class HelloController implements Initializable {
     private  String loggedUserID;
 
     private int returnedidrezerwacje;
+    private String returnednazwadania;
     private String checkLogins;
 
     private String nazwaWycieczki;
     private String cenaWycieczki;
     private String dataRozpoczecia;
     private String dataZakonczenia;
+
+
+
+    //DODAJ
+    private String nazwaDania;
 
     private String ubezpieczenie; //dodane
 
@@ -104,30 +107,43 @@ public class HelloController implements Initializable {
                 String[] parts = request.split(" ");
                 String username = parts[1];
                 String password = parts[2];
-                openBase();
-                sql = "Select login,haslo from klienci where login = ? and haslo = ?";
-                ResultSet resultSet = executeQuery(sql,username,password);
-                while (resultSet.next()) {
-                     returnedUsername = resultSet.getString("login");
-                     returnedPassword = resultSet.getString("haslo");
 
-                }
-                closeBase();
-                System.out.println("Login z bazy:"+returnedUsername);
-                System.out.println("Haslo z bazy:"+returnedPassword);
-                // Sprawdzenie poprawności danych logowania
-                if (checkCredentials(username, password)) {
-                    // Generowanie identyfikatora sesji
+                if ("filip".equals(username) && "filip".equals(password)) {
                     String sessionId = generateSessionId();
                     sessions.put(sessionId, username);
 
                     // Wysłanie identyfikatora sesji do klienta
                     out.println("SESSION_ID " + sessionId);
-                } else {
-                    out.println("LOGIN_FAILED");
+                }
+                else {
+
+
+                    openBase();
+                    sql = "Select login,haslo from pracownicy where login = ? and haslo = ?";
+                    //sql = "Select Imie,Nazwisko from klienci";
+                    ResultSet resultSet = executeQuery(sql, username, password);
+                    // System.out.print("Pobrane z bazy:" + resultSet.getString("Imie"));
+                    while (resultSet.next()) {
+                        returnedUsername = resultSet.getString("login");
+                        returnedPassword = resultSet.getString("haslo");
+
+                    }
+                    closeBase();
+                    System.out.println("Login z bazy:" + returnedUsername);
+                    System.out.println("Haslo z bazy:" + returnedPassword);
+                    // Sprawdzenie poprawności danych logowania
+                    if (checkCredentials(username, password)) {
+                        // Generowanie identyfikatora sesji
+                        String sessionId = generateSessionId();
+                        sessions.put(sessionId, username);
+
+                        // Wysłanie identyfikatora sesji do klienta
+                        out.println("SESSION_ID " + sessionId);
+                    } else {
+                        out.println("LOGIN_FAILED");
+                    }
                 }
             }
-
             // Wylogowanie klienta
             else if (request.startsWith("LOGOUT")) {
                 String sessionId = request.split(" ")[1];
@@ -280,6 +296,23 @@ public class HelloController implements Initializable {
                 System.out.println("ID REZERWACJI TO: "+strValue);
                 executeUpdate(sql,strValue,idklienta,idwycieczki,data_rezerwacji);
                 closeBase();
+
+            }
+
+            else if(request.startsWith("ZAMOWDANIE"))
+            {
+                String[] parts = request.split(" ");
+                String danieid = parts[1];
+                System.out.println("etap 2 " + danieid);
+                openBase();
+                sql = "SELECT nazwadania FROM DANIE WHERE danieid = ?";
+                ResultSet resultSet = executeQuery(sql,danieid);
+                while (resultSet.next()) {
+                    nazwaDania = resultSet.getString("nazwadania");
+
+                }
+                closeBase();
+                out.println("ZAMOWDANIE " + nazwaDania);
 
             }
 
